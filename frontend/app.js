@@ -1,10 +1,13 @@
-const API_URL = ''
+const API_URL = document.querySelector('meta[name="api-base-url"]')?.content || ''
 const emptyForm = { nome: '', raca: '', categoria: '', peso_kg: '', idade_meses: '', valor_arroba: '' }
 const currency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value || 0))
 let view = getView()
 let refreshKey = 0
 
 function getView() {
+  const hashRoute = window.location.hash.slice(2)
+  const hashViews = { dashboard: 'dashboard', calculator: 'calculator', records: 'records', summary: 'summary' }
+  if (hashViews[hashRoute]) return hashViews[hashRoute]
   const path = window.location.pathname
   return path === '/calcular' ? 'calculator' : path === '/listar' ? 'records' : path === '/resumo' ? 'summary' : 'dashboard'
 }
@@ -17,19 +20,20 @@ async function api(path, options = {}) {
 }
 
 function navigate(next) {
-  const paths = { dashboard: '/', calculator: '/calcular', records: '/listar', summary: '/resumo' }
-  window.history.pushState({}, '', paths[next])
+  window.history.pushState({}, '', `#/${next}`)
   view = next
   render()
 }
 
 function header() {
-  const links = [['dashboard', 'Início'], ['calculator', 'Calcular'], ['records', 'Avaliações'], ['summary', 'Resumo']]
-  return `<header class="topbar"><button class="brand" data-view="dashboard"><span class="brand-mark">✦</span> Agro<span>logic</span></button><nav>${links.map(([key, label]) => `<button class="nav-btn ${view === key ? 'active' : ''}" data-view="${key}">${label}</button>`).join('')}</nav></header>`
+  const links = [['dashboard', '<img src="./assets/overview-icon.png" alt="">', 'Visão geral'], ['calculator', '<img src="./assets/calculator-icon.png" alt="">', 'Calcular'], ['records', '<img src="./assets/records-icon.png" alt="">', 'Avaliações'], ['summary', '<img src="./assets/summary-icon.png" alt="">', 'Resumo']]
+  return `<aside class="sidebar"><button class="brand" data-view="dashboard"><img class="brand-logo" src="./assets/agrologic-logo.png" alt=""><span class="brand-copy"><strong>Agro<span>logic</span></strong><small>GESTÃO PECUÁRIA</small></span></button><nav class="side-nav" aria-label="Navegação principal">${links.map(([key, icon, label]) => `<button class="nav-btn ${view === key ? 'active' : ''}" data-view="${key}" ${view === key ? 'aria-current="page"' : ''}><span class="nav-icon" aria-hidden="true">${icon}</span>${label}</button>`).join('')}</nav></aside>`
 }
 
 function layout(content) {
-  return `<div class="app-shell">${header()}${content}</div>`
+  const action = view === 'calculator' ? '' : '<button class="primary" data-view="calculator"><span aria-hidden="true">＋</span> Nova avaliação</button>'
+  const toolbar = action ? `<header class="topbar">${action}</header>` : ''
+  return `<div class="app-shell">${header()}<div class="workspace">${toolbar}${content}</div></div>`
 }
 
 function dashboard() {
@@ -83,6 +87,7 @@ function summary() {
 
 function render() {
   const content = view === 'calculator' ? calculator() : view === 'records' ? records() : view === 'summary' ? summary() : dashboard()
+  document.body.classList.add('app-view')
   document.body.innerHTML = layout(content)
   document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.view)))
   if (view === 'calculator') setupCalculator()

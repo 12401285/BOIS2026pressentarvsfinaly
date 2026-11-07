@@ -110,6 +110,17 @@ O valor estimado segue a lógica usada no mercado pecuário: o peso do animal é
 preço_estimado = (peso_kg / 15) * valor_arroba
 ```
 
+## Como executar o frontend
+
+O frontend usa apenas HTML, CSS e JavaScript nativo; não precisa de Node.js, npm ou etapa de build. Com o backend em execução na porta `5000`, abra outro terminal:
+
+```bash
+cd frontend
+python -m http.server 5500
+```
+
+Acesse `http://127.0.0.1:5500`. O endereço da API pode ser ajustado em `frontend/index.html`, na meta tag `api-base-url`.
+
 ## Como executar o backend
 
 Entre na pasta do backend:
